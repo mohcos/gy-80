@@ -143,3 +143,19 @@ char* HMC5883L::GetErrorText(int errorCode)
     
     return "Error not defined.";
 }
+
+float HMC5883L::getDegrees()
+{
+  //Get the reading from the HMC5883L and calculate the heading
+  MagnetometerScaled scaled = ReadScaledAxis(); //scaled values from compass.
+  float heading = atan2(scaled.YAxis, scaled.XAxis);
+
+  // Correct for when signs are reversed.
+  if (heading < 0) 
+    heading += 2 * PI;
+        
+  if (heading > 2 * PI) 
+    heading -= 2 * PI;
+
+  return heading * RAD_TO_DEG; //radians to degrees
+}

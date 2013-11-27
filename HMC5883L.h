@@ -62,6 +62,7 @@ class HMC5883L
 
      MagnetometerRaw ReadRawAxis();
      MagnetometerScaled ReadScaledAxis();
+     float getDegrees();
  
      int SetMeasurementMode(uint8_t mode);
      int SetScale(float gauss);

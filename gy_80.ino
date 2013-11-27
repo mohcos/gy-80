@@ -12,7 +12,7 @@
 ADXL345 accel;
 HMC5883L compass;
 L3G4200D gyro;
-Adafruit_BMP085 baro;
+Adafruit_BMP085_Unified baro = Adafruit_BMP085_Unified(10085);
 DataSmoother data = DataSmoother();
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
@@ -31,7 +31,7 @@ void setup()
   compass.SetScale(1.3);
   compass.SetMeasurementMode(Measurement_Continuous);
   gyro.setupL3G4200D(2000); // 2000 deg / sec
-  baro.bmp085Calibration();
+  baro.begin();
   lcd.begin(20, 4);
   delay(100);
 }
@@ -62,17 +62,30 @@ void loop()
 
 void showBaro()
 {
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Temp:");
-  float press = baro.bmp085GetTemperature();
-  lcd.print(press);
-  lcd.setCursor(0, 1);
-  lcd.print("Press:");
-  lcd.print(baro.bmp085GetPressure());
-  lcd.setCursor(0, 2);
-  lcd.print("Altitude:");
-  lcd.print(baro.calcAltitude(press));
+  sensors_event_t event;
+  baro.getEvent(&event);
+  float temperature;
+ 
+  /* Display the results (barometric pressure is measure in hPa) */
+  if (event.pressure)
+  {
+    baro.getTemperature(&temperature);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Temp:");
+    lcd.print(temperature * 9 / 5 + 32);
+    lcd.setCursor(0, 1);
+    lcd.print("Press:");
+    lcd.print(event.pressure);
+    lcd.setCursor(0, 2);
+    lcd.print("Altitude:");
+    lcd.print(baro.pressureToAltitude(SENSORS_PRESSURE_SEALEVELHPA,
+                                        event.pressure,
+                                        temperature));
+  }
+  lcd.setCursor(0,3);
+  lcd.print("bearing:");
+  lcd.print(compass.getDegrees());
 }
 
 void show9DOF()
@@ -100,15 +113,20 @@ void writeResults(double Xa, double Ya, double Za, double Xm, double Ym, double 
   writeAt(1, 0, Xa);
   writeAt(1, 6, Ya);
   writeAt(1, 12, Za);
-  writeAt(2, 0, Xm);
-  writeAt(2, 6, Ym);
-  writeAt(2, 12, Zm);
-  writeAt(3, 0, Xg);
-  writeAt(3, 6, Yg);
-  writeAt(3, 12, Zg);
+  writeAt(2, 0, (int)Xm);
+  writeAt(2, 6, (int)Ym);
+  writeAt(2, 12, (int)Zm);
+  writeAt(3, 0, (int)Xg);
+  writeAt(3, 6, (int)Yg);
+  writeAt(3, 12, (int)Zg);
 }
 
 void writeAt(int row, int col, double text)
+{
+  lcd.setCursor(col, row);
+  lcd.print(text);
+}
+void writeAt(int row, int col, int text)
 {
   lcd.setCursor(col, row);
   lcd.print(text);
