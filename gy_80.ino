@@ -2,14 +2,15 @@
 #include <LiquidCrystal.h>
 #include "HMC5883L.h"
 #include "L3G4200D.h"
-#include "ADXL345.h"
+// #include "ADXL345.h"
 #include "DataSmoother.h"
 #include <sstream>
 #include <string>
 #include <Adafruit_Sensor.h>
-#include <Adafruit_BMP085.h>                                      
+#include <Adafruit_BMP085.h>
+#include <Adafruit_ADXL345.h>
 
-ADXL345 accel;
+Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 HMC5883L compass;
 L3G4200D gyro;
 Adafruit_BMP085_Unified baro = Adafruit_BMP085_Unified(10085);
@@ -90,19 +91,23 @@ void showBaro()
 
 void show9DOF()
 {
-  double Xa, Ya, Za;
-  accel.read(&Xa, &Ya, &Za);
-  
-  Xa = data.smoothe(1, Xa);
-  Ya = data.smoothe(2, Ya);
-  Za = data.smoothe(3, Za);
+  sensors_event_t event;
+  accel.getEvent(&event);
   
   MagnetometerRaw mag = compass.ReadRawAxis();
   
   int Xg, Yg, Zg;
   gyro.read(&Xg, &Yg, &Zg);
   
-  writeResults(Xa, Ya, Za, data.smoothe(4, mag.XAxis), data.smoothe(5, mag.YAxis), data.smoothe(6, mag.ZAxis), data.smoothe(7, Xg), data.smoothe(8, Yg), data.smoothe(9, Zg));
+  writeResults(data.smoothe(1, event.acceleration.x),
+               data.smoothe(2, event.acceleration.y),
+               data.smoothe(3, event.acceleration.z),
+               data.smoothe(4, mag.XAxis), 
+               data.smoothe(5, mag.YAxis), 
+               data.smoothe(6, mag.ZAxis), 
+               data.smoothe(7, Xg), 
+               data.smoothe(8, Yg), 
+               data.smoothe(9, Zg));
 }
 
 void writeResults(double Xa, double Ya, double Za, double Xm, double Ym, double Zm, double Xg, double Yg, double Zg)
