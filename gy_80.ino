@@ -17,14 +17,6 @@ Adafruit_BMP085_Unified baro = Adafruit_BMP085_Unified(10085);
 DataSmoother data = DataSmoother();
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-const float alpha = 0.5;
-const String sXg = "Xg: ";
-
-
-double fXa = 0;
-double fYa = 0;
-double fZa = 0;
-
 void setup()
 {
   Wire.begin();
