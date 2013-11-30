@@ -9,10 +9,11 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP085.h>
 #include <Adafruit_ADXL345.h>
+#include <Adafruit_L3GD20.h>
 
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 HMC5883L compass;
-L3G4200D gyro;
+Adafruit_L3GD20 gyro;
 Adafruit_BMP085_Unified baro = Adafruit_BMP085_Unified(10085);
 DataSmoother data = DataSmoother();
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
@@ -23,7 +24,7 @@ void setup()
   accel.begin();
   compass.SetScale(1.3);
   compass.SetMeasurementMode(Measurement_Continuous);
-  gyro.setupL3G4200D(2000); // 2000 deg / sec
+  gyro.begin(); // 2000 deg / sec
   baro.begin();
   lcd.begin(20, 4);
   delay(100);
@@ -88,8 +89,7 @@ void show9DOF()
   
   MagnetometerRaw mag = compass.ReadRawAxis();
   
-  int Xg, Yg, Zg;
-  gyro.read(&Xg, &Yg, &Zg);
+  gyro.read();
   
   writeResults(data.smoothe(1, event.acceleration.x),
                data.smoothe(2, event.acceleration.y),
@@ -97,9 +97,9 @@ void show9DOF()
                data.smoothe(4, mag.XAxis), 
                data.smoothe(5, mag.YAxis), 
                data.smoothe(6, mag.ZAxis), 
-               data.smoothe(7, Xg), 
-               data.smoothe(8, Yg), 
-               data.smoothe(9, Zg));
+               data.smoothe(7, gyro.data.x), 
+               data.smoothe(8, gyro.data.y), 
+               data.smoothe(9, gyro.data.z));
 }
 
 void writeResults(double Xa, double Ya, double Za, double Xm, double Ym, double Zm, double Xg, double Yg, double Zg)
