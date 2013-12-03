@@ -1,6 +1,4 @@
 #include <Arduino.h>
-#include <map>
-#include <string>
 
 class DataSmoother{
   public:
